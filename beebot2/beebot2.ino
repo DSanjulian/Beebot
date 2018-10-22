@@ -1,32 +1,32 @@
-int valorf,valorr, valorl, valorb, valorm, valorp; //lecturas teclas
-int i=0;
-int cont=0; // contador para los comandos
-int contmode = 0; //contador boton modo
-int mode = 0; //0 leer, 1 ejecutar
-int commands[100];
+int valueForward,valueBackward, valueTurnCW, valueTurnCCW, valueMode, valuePause, valueClear; //Pushbuttons readings
+int i=0; //Pointer for commands array
+int cont=0; // Counter to check pressed buttons
+int contmode = 0;
+int mode = 0; //Read -> 0 ; Execute -> 1;
+int commands[100]; //Array with commands
 
-
+//Pins variables
 int dirA = 4;
 int velA = 5;
-
 int dirB = 7;
 int velB = 6;
-//pines conectados
-int forward = 8;
-int backward = 9;
-int right = 10;
-int left = 11;
-int modo = 12;
-int ledleer = 13;
-int ledejecutar = 7;
+int pinForward = 8;
+int pinBackward = 9;
+int pinTurnCW = 10;
+int pinTurnCCW = 11;
+int pinMode = 12;
+int pinLEDread = 13;
+int pinLEDexecute = 7;
+int pinClear = 2
 
-
-void parar(){
+//Commands functions
+void dopause(){
+  Serial.println("Descansito");
   analogWrite(velA, 0);
   analogWrite(velB, 0);
   }
 
-void palante(){
+void goForward(){
   Serial.println("Voy palante a fuuul");
   digitalWrite(dirA, 1);
   digitalWrite(dirB, 1);
@@ -34,7 +34,7 @@ void palante(){
   analogWrite(velB, 255);
 }
 
-void patras(){
+void goBackward(){
   Serial.println("Si voy patrás es sólo pa coger más carrerilla!");
   digitalWrite(dirA, 0);
   digitalWrite(dirB, 0);
@@ -42,7 +42,7 @@ void patras(){
   analogWrite(velB, 255);
 }
 
-void derecha(){
+void turnCW(){
   Serial.println("Viva el rey");
   digitalWrite(dirA, 1);
   digitalWrite(dirB, 0);
@@ -50,7 +50,7 @@ void derecha(){
   analogWrite(velB, 0);
 }
 
-void izquierda(){
+void turnCCW(){
   Serial.println("Camino a la perdición");
   digitalWrite(dirA, 0);
   digitalWrite(dirB, 1);
@@ -64,13 +64,13 @@ void setup() {
   pinMode(velA, OUTPUT);
   pinMode(dirB, OUTPUT);
   pinMode(velB, OUTPUT);
-  pinMode(forward, INPUT);
-  pinMode(backward, INPUT);
-  pinMode(right, INPUT);
-  pinMode(left, INPUT);
-  pinMode(modo, INPUT);
-  pinMode(ledleer, OUTPUT);
-  pinMode(ledejecutar, OUTPUT);
+  pinMode(pinForward, INPUT);
+  pinMode(pinBackward, INPUT);
+  pinMode(pinTurnCW, INPUT);
+  pinMode(pinTurnCCW, INPUT);
+  pinMode(pinMode, INPUT);
+  pinMode(pinLEDread, OUTPUT);
+  pinMode(pinLEDexecute, OUTPUT);
   Serial.begin(9600);
 
 }
@@ -79,19 +79,19 @@ void loop() {
 
   
   
-  while (!mode) {
-  digitalWrite(ledejecutar, 0);
-  digitalWrite(ledleer, 1);
-  valorf=digitalRead(forward);
-  valorb=digitalRead(backward);
-  valorl=digitalRead(left);
-  valorr=digitalRead(right);
-  valorm=digitalRead(modo);
+  while (!mode) { //mode == 0, READING
+  digitalWrite(pinLEDexecute, 0);
+  digitalWrite(pinLEDread, 1);
+  valueForward=digitalRead(pinForward);
+  valueBackward=digitalRead(pinBackward);
+  valueTurnCCW=digitalRead(pinTurnCCW);
+  valueTurnCW=digitalRead(pinTurnCW);
+  valueMode=digitalRead(pinMode);
  
 
-  if ((valorf) && (cont)){
-    commands[i]=1;
-    cont=0;
+  if ((valueForward) && (cont)){ //Check if pushbutton for Forward is pressed. With cont we check that it wasn't already pressed
+    commands[i]=1; //Add command to array
+    cont=0; //Warn that a button is pressed
     Serial.print(i);
     Serial.print("  forward  ");
     Serial.println(commands[i]);
@@ -99,7 +99,7 @@ void loop() {
    
   }
   
-  if ((valorb) && (cont)) {
+  if ((valueBackward) && (cont)) {
     commands[i]=2;
     cont=0;
     Serial.print(i);
@@ -108,7 +108,7 @@ void loop() {
     i++;
     }  
     
-  if ((valorl) && (cont)) {
+  if ((valueTurnCCW) && (cont)) {
     commands[i]=3;
     cont=0;
     Serial.print(i);
@@ -117,7 +117,7 @@ void loop() {
     i++;
     }  
     
-  if ((valorr) && (cont)) {
+  if ((valueTurnCW) && (cont)) {
     commands[i]=4;
     cont=0;
     Serial.print(i);
@@ -126,7 +126,7 @@ void loop() {
     i++;
     }
     
-     if ((valorp) && (cont)){
+     if ((valuePause) && (cont)){
     commands[i]=5;
     cont=0;
     Serial.print(i);
@@ -136,32 +136,42 @@ void loop() {
    
   }
     
-  if (((!valorf) && (!valorb) && (!valorl) && (!valorr))&&(!cont)){
+      if ((valueClear) && (cont)){
+         for (int c = 0; c<=100; c++) { //Erase commands
+           commands[c]=0; 
+         i=0; //Set pointer to first position
+  }
+   
+  }
+    //Check if no button is pressed and update variable accordingly
+  if ((!valueForward) && (!valueBackward) && (!valueTurnCW) && (!valueTurnCCW) && (!valuePause) && (!valueClear) && (!cont)){
     cont=1;
   }
-  if(valorm){
+    
+  if(valueMode){ //EXECUTE
     mode=1;
   }
+    
   }
   while(mode) {
-      digitalWrite(ledleer, 0);
-      digitalWrite(ledejecutar, 1);
+      digitalWrite(pinLEDread, 0);
+      digitalWrite(pinLEDexecute, 1);
       for (int a =0; a<i; a++){
         switch(commands[a]){
           case 1:
-          palante();
+          goForward();
           break;
           case 2:
-          patras();
+          goBackward();
           break;
           case 3:
-          derecha();
+          turnCW();
           break;
           case 4:
-          izquierda();
+          turnCCW();
           break;
           case 5:
-          parar();
+          dopause();
           break;
           }
         } 
